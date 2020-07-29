@@ -1,0 +1,60 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.30.0.0
+Copyright (C) 2020 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: Samarth Viswanath PMD Solutions Flex license: MDK Essential 5.30 (Flex): 1 user(s) (mdk_essential) Operation stops: 31 Jul 2021
+ 
+Tool Versions:
+Toolchain:       MDK Essential 5.30 (Flex): 1 user(s)  Version: 5.30.0.0
+Toolchain Path:  C:\Keil_v5\ARM\ARMCLANG\Bin
+C Compiler:      ArmClang.exe V6.14
+Assembler:       Armasm.exe V6.14
+Linker/Locator:  ArmLink.exe V6.14
+Library Manager: ArmAr.exe V6.14
+Hex Converter:   FromElf.exe V6.14
+CPU DLL:         
+Dialog DLL:      DCM.DLL V1.17.3.0
+Target DLL:      CMSIS_AGDI.dll V1.32.5.0
+Dialog DLL:      TCM.DLL V1.42.0.0
+ 
+<h2>Project:</h2>
+C:\Users\Ian.Martin\Mbed Programs\mbed-test-2-SM-Copy\BLE_SM\BLE_SM.uvprojx
+Project File Date:  07/28/2020
+
+<h2>Output:</h2>
+*** Using Compiler 'V6.14', folder: 'C:\Keil_v5\ARM\ARMCLANG\Bin'
+Build target 'BLE_SM'
+compiling main.cpp...
+linking...
+.\BUILD\BLE_SM.axf: Warning: L3912W: Option 'legacyalign' is deprecated.
+.\BUILD\BLE_SM.axf: Warning: L6439W: Multiply defined Global Symbol ble::interface::SecurityManager<ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>::EventHandler::~EventHandler__deallocating() defined in .text._ZN3ble9interface15SecurityManagerINS_7generic22GenericSecurityManagerINS_3pal6vendor6cordio21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEE12EventHandlerD0Ev(.\build\cordioimplementations.o) rejected in favor of Symbol defined in .text._ZN3ble9interface15SecurityManagerINS_7generic22GenericSecurityManagerINS_3pal6vendor6cordio21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEE12EventHandlerD0Ev(.\build\cordioble.o).
+.\BUILD\BLE_SM.axf: Warning: L6439W: Multiply defined Global Symbol ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>::GenericSecurityManager__sub_object(ble::pal::SecurityManager<ble::pal::vendor::cordio::CordioSecurityManager<ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>, ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>&, ble::pal::ConnectionEventMonitor<ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>&, ble::vendor::cordio::SigningEventMonitor<ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>&) defined in .text._ZN3ble7generic22GenericSecurityManagerINS_3pal6vendor6cordio21CordioSecurityManagerENS_6vendor6co...
+.\BUILD\BLE_SM.axf: Warning: L6439W: Multiply defined Global Symbol ble::interface::SecurityManager<ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>::EventHandler::EventHandler__sub_object() defined in .text._ZN3ble9interface15SecurityManagerINS_7generic22GenericSecurityManagerINS_3pal6vendor6cordio21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEE12EventHandlerC2Ev(.\build\cordioimplementations.o) rejected in favor of Symbol defined in .text._ZN3ble9interface15SecurityManagerINS_7generic22GenericSecurityManagerINS_3pal6vendor6cordio21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEE12EventHandlerC2Ev(.\build\cordioble.o).
+.\BUILD\BLE_SM.axf: Warning: L6439W: Multiply defined Global Symbol ble::pal::vendor::cordio::CordioGattClient<ble::generic::GenericGattClient<ble::pal::vendor::cordio::CordioGattClient, ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>>::CordioGattClient__sub_object(ble::pal::vendor::cordio::CordioAttClient&) defined in .text._ZN3ble3pal6vendor6cordio16CordioGattClientINS_7generic17GenericGattClientIS3_NS4_22GenericSecurityManagerINS2_21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEEEEC2ERNS2_15CordioAttClientE(.\build\cordioimplementations.o) rejected in favor of Symbol defined in .text._ZN3ble3pal6vendor6cordio16CordioGattClientINS_7generic17GenericGattClientIS3_NS4_22GenericSecurityManagerINS2_21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEEEEC2ERNS2_15CordioAttClientE(.\build\cordioble.o).
+.\BUILD\BLE_SM.axf: Warning: L6439W: Multiply defined Global Symbol ble::interface::SecurityManager<ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>::SecurityManager__sub_object() defined in .text._ZN3ble9interface15SecurityManagerINS_7generic22GenericSecurityManagerINS_3pal6vendor6cordio21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEEC2Ev(.\build\cordioimplementations.o) rejected in favor of Symbol defined in .text._ZN3ble9interface15SecurityManagerINS_7generic22GenericSecurityManagerINS_3pal6vendor6cordio21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEEC2Ev(.\build\cordioble.o).
+.\BUILD\BLE_SM.axf: Warning: L6439W: Multiply defined Global Symbol ble::interface::Gap<ble::generic::GenericGap<ble::pal::vendor::cordio::Gap, ble::pal::SecurityManager<ble::pal::vendor::cordio::CordioSecurityManager<ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>, ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>, ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>>::EventHandler::~EventHandler__sub_object() defined in .text._ZN3ble9interface3GapINS_7generic10GenericGapINS_3pal6vendor6cordio3GapENS4_15SecurityManagerINS6_21CordioSecurityManagerINS2_22GenericSecurityManagerIS9_NS_6vendor6cordio19SigningEventMonitorEEEEESE_EESE_EEE12EventHandlerD2Ev(.\build\main.o) rejected in favor of Symbol defined in .text._ZN3ble9interface3GapINS_7generic10GenericGapINS_3pal6vendor6c...
+.\BUILD\BLE_SM.axf: Warning: L6439W: Multiply defined Global Symbol ble::interface::SecurityManager<ble::generic::GenericSecurityManager<ble::pal::vendor::cordio::CordioSecurityManager, ble::vendor::cordio::SigningEventMonitor>>::EventHandler::~EventHandler__sub_object() defined in .text._ZN3ble9interface15SecurityManagerINS_7generic22GenericSecurityManagerINS_3pal6vendor6cordio21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEE12EventHandlerD2Ev(.\build\cordioimplementations.o) rejected in favor of Symbol defined in .text._ZN3ble9interface15SecurityManagerINS_7generic22GenericSecurityManagerINS_3pal6vendor6cordio21CordioSecurityManagerENS_6vendor6cordio19SigningEventMonitorEEEE12EventHandlerD2Ev(.\build\cordioble.o).
+Program Size: Code=282476 RO-data=13008 RW-data=604 ZI-data=32408  
+Finished: 0 information, 8 warning and 0 error messages.
+FromELF: creating hex file...
+".\BUILD\BLE_SM.axf" - 0 Error(s), 8 Warning(s).
+
+<h2>Software Packages used:</h2>
+
+Package Vendor: NordicSemiconductor
+                http://developer.nordicsemi.com/nRF5_SDK/pieces/nRF_DeviceFamilyPack/NordicSemiconductor.nRF_DeviceFamilyPack.8.32.1.pack
+                NordicSemiconductor.nRF_DeviceFamilyPack.8.32.1
+                Nordic Semiconductor nRF ARM devices Device Family Pack with BSD license.
+
+<h2>Collection of Component include folders:</h2>
+  .\RTE\_BLE_SM
+  C:\Keil_v5\ARM\PACK\NordicSemiconductor\nRF_DeviceFamilyPack\8.32.1\Device\Include
+
+<h2>Collection of Component Files used:</h2>
+Build Time Elapsed:  00:04:58
+</pre>
+</body>
+</html>

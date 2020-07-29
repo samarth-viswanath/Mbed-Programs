@@ -1,0 +1,21 @@
+BUILD\NRF52_DK\GCC_ARM\mbed-os\features\FEATURE_BLE\targets\TARGET_CORDIO_LL\stack\controller\sources\ble\sch\sch_tm.o: \
+ mbed-os\features\FEATURE_BLE\targets\TARGET_CORDIO_LL\stack\controller\sources\ble\sch\sch_tm.c \
+ BUILD\NRF52_DK\GCC_ARM\mbed_config.h \
+ mbed-os\features\FEATURE_BLE\targets\TARGET_CORDIO_LL\stack\controller\sources\ble\sch\sch_int_tm.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO_LL/stack/controller/include/common/sch_api.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO/stack/wsf/include/wsf_types.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO/stack/wsf/include/wsf_os.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO/stack/wsf/include/wsf_types.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO/stack/wsf/include/wsf_queue.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO_LL/stack/controller/include/common/bb_api.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO_LL/stack/controller/include/common/cfg_mac.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO/stack/platform/include/pal_bb.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO/stack/platform/include/pal_types.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO_LL/stack/controller/include/ble/sch_api_ble.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO_LL/stack/controller/include/common/bb_api.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO_LL/stack/controller/include/ble/ll_math.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO_LL/stack/controller/include/common/cfg_mac_ble.h \
+ mbed-os\features\FEATURE_BLE\targets\TARGET_CORDIO_LL\stack\controller\sources\ble\sch\sch_int_rm.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO/stack/wsf/include/wsf_assert.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO/stack/wsf/include/wsf_trace.h \
+ mbed-os/features/FEATURE_BLE/targets/TARGET_CORDIO/stack/wsf/include/wsf_math.h
