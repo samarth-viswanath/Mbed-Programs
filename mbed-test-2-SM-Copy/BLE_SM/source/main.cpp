@@ -59,6 +59,7 @@ const static disconnect_call_t disconnect_call = &Gap::disconnect;
 static ble::address_t peer_address = ble::address_t(&address[0]);
 const static ble::address_t _peer_address_nonin;
 ble::connection_handle_t _connectionHandle = NULL;
+GattAttribute::Handle_t _CCCD = 0;
  
 /** Base class for both peripheral and central. The same class that provides
  *  the logic for the application also implements the SecurityManagerEventHandler
@@ -77,7 +78,8 @@ public:
         _event_queue(event_queue),
         _peer_address(peer_address),
         _handle(0),
-        _is_connecting(false) { };
+        _is_connecting(false),
+				_found_characteristic(false) { };
 
     virtual ~SMDevice()
     {
@@ -271,9 +273,9 @@ private:
             return;
         }
 
-        /* disconnect in 2 s */
+        /* disconnect in 2 s *///50seconds
         _event_queue.call_in(
-            10000,
+            50000,
             &_ble.gap(),
             disconnect_call,
             _handle,
@@ -285,7 +287,7 @@ private:
      *  in our case it ends the demonstration. */
     virtual void onDisconnectionComplete(const ble::DisconnectionCompleteEvent &)
     {
-        printf("Diconnected\r\n");
+        printf("Disconnected\r\n");
         _event_queue.break_dispatch();
     };
 		
@@ -370,32 +372,110 @@ private:
         }
 				
 				printf("** Our uuid %s", uuidStr);*/
-			if (discovered_characteristic->getDeclHandle() == 28) {
+			if (discovered_characteristic->getDeclHandle() == 28 && !_found_characteristic) {
 				printf("Match found");
-				uint8_t notification_enabled = 1;
-        BLE &ble = BLE::Instance();
-				ble.gattClient().onDataRead(as_cb(&SMDevice::on_attribute_read));
-        ble_error_t err = ble.gattClient().write(
- 
-            GattClient::GATT_OP_WRITE_REQ,
-            _connectionHandle,
-            discovered_characteristic->getValueHandle(),
-            sizeof(notification_enabled),
-            reinterpret_cast<const uint8_t*>(&notification_enabled)
- 
+				_found_characteristic = true;
+				_discoveredCharacteristic = *discovered_characteristic;
+//				BLE &ble = BLE::Instance();
+//				ble.gattClient().onServiceDiscoveryTermination(as_cb(&SMDevice::whenServiceDiscoveryTerminated));
+				//5sec delay
+				_event_queue.call_in(
+            5000,
+						this,
+						&SMDevice::whenServiceDiscoveryTerminated
         );
-        if(err == 0){
-            printf("cccd update successfull\n");
-        }else{
-            printf("error updating: error_code [%u]\n", err);
-        }
 			}
-    }
+    } 
+		
+		void whenServiceDiscoveryTerminated() {
+			if (!_found_characteristic) return;
+			printf(" Discovery Termination:In \n");
+			print_uuid(_discoveredCharacteristic.getUUID());
+        printf(", properties = ");
+        print_properties(_discoveredCharacteristic.getProperties());
+			BLE &ble = BLE::Instance();
+			ble_error_t err = ble.gattClient().discoverCharacteristicDescriptors( 
+					_discoveredCharacteristic, 
+					as_cb(&SMDevice::whenDescriptorDiscovered),
+					as_cb(&SMDevice::whenDiscoveryEnd)
+			);
 
+			if (err) { 
+				 printf("discoverCharacteristicDescriptors call failed with Ble error: %d" , err);
+			}
+			printf(" Discovery Termination:out \n");
+		}
+		 
+		void onUpdatesCallback(const GattHVXCallbackParams *params)
+			{
+				printf("onUpdatesCallback : update received: handle %u, length %u, type = %d \r\n", params->handle,params->len,params->type);
+				if (params->handle == _discoveredCharacteristic.getValueHandle()) {
+					printf("Packet size %d \n", (uint8_t)params->data[0]);
+					printf("Spo2 %d \n", (uint8_t)params->data[7]);
+					printf("Pulse %d \n", (uint16_t)((params->data[8] << 8) | params->data[9]));
+				}
+			}
+		
+		void whenDescriptorDiscovered(const CharacteristicDescriptorDiscovery::DiscoveryCallbackParams_t* p) { 
+						BLE &ble = BLE::Instance();
+						printf("whenDescriptorDiscovered:In \n");
+				printf("\tCharacteristic DESCRIPTOR discovered: uuid = ");
+        print_uuid(p->characteristic.getUUID());
+        printf(", properties = ");
+        print_properties(p->characteristic.getProperties());
+            if (p->descriptor.getUUID() == BLE_UUID_DESCRIPTOR_CLIENT_CHAR_CONFIG) { 
+							print_uuid(p->descriptor.getUUID());
+								printf("whenDescriptorDiscovered - p->descriptor.getUUID():In \n");
+                _CCCD = p->descriptor.getAttributeHandle();
+                ble.gattClient().terminateCharacteristicDescriptorDiscovery(_discoveredCharacteristic);
+            }
+					printf(" whenDescriptorDiscovered:Out \n");
+        }
+    
+        void whenDiscoveryEnd(const CharacteristicDescriptorDiscovery::TerminationCallbackParams_t* p) {
+						printf(" whenDiscoveryEnd:In \n");
+            if (p->status) {
+								return;
+            }
+						printf(" whenDiscoveryEnd:Out1 \n"); 
+            BLE &ble = BLE::Instance();
+						// otherwise launch write the descriptor
+            // first register the write callback 
+					
+						printf(" whenDiscoveryEnd:after launch descriptor \n"); 
+            uint16_t cccd_value = BLE_HVX_NOTIFICATION;
+						ble_error_t err = ble.gattClient().write( 
+                GattClient::GATT_OP_WRITE_REQ,
+                _discoveredCharacteristic.getConnectionHandle(),
+                _CCCD,
+                sizeof(cccd_value),
+                (uint8_t*) &cccd_value
+            );
+						    ble.gattClient().onHVX(
+                as_cb(&SMDevice::onUpdatesCallback)
+            );
+						printf(" whenDiscoveryEnd:after writing notification \n"); 
+            if (err) { 
+                
+                // remove the callback registered for data write 
+                ble.gattClient().onDataWritten().detach(
+                    as_cb(&SMDevice::whenDataWritten)
+                );
+                return;
+            }
+						printf(" whenDiscoveryEnd:OutFinal \n");
+        }
+
+			virtual void whenDataWritten(const GattWriteCallbackParams* params) {
+					printf("whenDataWritten ");
+					//printf("Spo2 %d ", (uint8_t)params->data[7]);
+					//printf("Pulse %d ", (uint16_t)((params->data[8] << 8) | params->data[9]));
+			}
+				
 		virtual void on_attribute_read(const GattReadCallbackParams* params) {
-			printf("Read attribute");
-			printf("Spo2 %d", (uint8_t)params->data[7]);
-			printf("Pulse %d", (uint16_t)((params->data[8] << 8) | params->data[9]));
+			printf("Read attribute ");
+			//printf("Spo2 %d", (uint8_t)params->data[7]);
+			//printf("Pulse %d", (uint16_t)((params->data[8] << 8) | params->data[9]));
 		}
 
     virtual void onAdvertisingEnd(const ble::AdvertisingEndEvent &event)
@@ -413,6 +493,8 @@ private:
     }
 
 private:
+		DiscoveredCharacteristic _discoveredCharacteristic;
+		bool _found_characteristic;
     DigitalOut _led1;
 
 protected:
