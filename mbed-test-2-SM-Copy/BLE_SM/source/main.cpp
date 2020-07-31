@@ -26,7 +26,6 @@
 #include "HeapBlockDevice.h"
 #endif //MBED_CONF_APP_FILESYSTEM_SUPPORT
 
-
 #include "ble/GattClient.h"
 #include "ble/DiscoveredService.h"
 #include "ble/DiscoveredCharacteristic.h"
