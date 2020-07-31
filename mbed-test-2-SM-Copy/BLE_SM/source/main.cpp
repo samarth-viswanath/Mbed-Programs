@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
+ 
 #include <events/mbed_events.h>
 #include <mbed.h>
 #include "ble/BLE.h"
@@ -360,6 +360,7 @@ private:
             discovered_characteristic->getValueHandle(),
             discovered_characteristic->getLastHandle()
         );
+			  
 			
 			/*char uuidStr[128];
 			memset(&uuidStr[0], 0, 128);

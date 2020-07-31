@@ -285,20 +285,20 @@ ARM Macro Assembler    Page 5
               00000000 
               00000000 
 Command Line: --debug --xref --cpreproc --diag_suppress=9931 --cpu=Cortex-M4.fp
-.sp -o.\build\startup_nrf52832.o -I.\RTE\_BLE_SM -IC:\Keil_v5\ARM\PACK\NordicSe
-miconductor\nRF_DeviceFamilyPack\8.32.1\Device\Include -IC:\Keil_v5\ARM\CMSIS\I
-nclude --predefine="__UVISION_VERSION SETA 530" --predefine="NRF52832_XXAA SETA
- 1" --predefine="_RTE_ SETA 1" --cpreproc_opts=-D__ASSERT_MSG,-DTARGET_NRF52832
-,-DNRF52_PAN_53,-D__MBED_CMSIS_RTOS_CM,-DNRF52_PAN_20,-D__FPU_PRESENT=1,-DSWI_D
-ISABLE0,-DCMSIS_VECTAB_VIRTUAL,-DMBED_TICKLESS,-DNRF52_PAN_15,-DNRF52_PAN_54,-D
-NRF52_PAN_51,-DARM_MATH_CM4,-DCONFIG_GPIO_AS_PINRESET,-DBOARD_PCA10040,-D__CORT
-EX_M4,-DNRF52_PAN_36,-DNRF52_PAN_31,-DNRF52_PAN_63,-DNRF52_PAN_30,-DNRF52_PAN_5
-8,-DMBED_MPU_CUSTOM,-D__CMSIS_RTOS,-DNRF52,-DNRF52_PAN_64,-DCMSIS_VECTAB_VIRTUA
-L_HEADER_FILE=cmsis_nvic.h,-DWSF_MAX_HANDLERS=10,-DNRF52_PAN_12,-DNRF52_PAN_55,
--DNRF52_PAN_62,--target=arm-arm-none-eabi,-mcpu=cortex-m4,-mfpu=fpv4-sp-d16,-mf
-loat-abi=hard,-D__UVISION_VERSION=530,-DNRF52832_XXAA,-D_RTE_ --list=.\build\st
-artup_nrf52832.lst ./mbed-os/targets/TARGET_NORDIC/TARGET_NRF5x/TARGET_NRF52/TA
-RGET_MCU_NRF52832/device/TOOLCHAIN_ARM_STD/startup_nrf52832.S
+.sp -o.\build\startup_nrf52832.o -IC:\Users\myles.murray\AppData\Local\Arm\Pack
+s\NordicSemiconductor\nRF_DeviceFamilyPack\8.32.1\Device\Include -IC:\Keil_v5\A
+RM\CMSIS\Include --predefine="__UVISION_VERSION SETA 531" --predefine="NRF52832
+_XXAA SETA 1" --cpreproc_opts=-D__ASSERT_MSG,-DTARGET_NRF52832,-DNRF52_PAN_53,-
+D__MBED_CMSIS_RTOS_CM,-DNRF52_PAN_20,-D__FPU_PRESENT=1,-DSWI_DISABLE0,-DCMSIS_V
+ECTAB_VIRTUAL,-DMBED_TICKLESS,-DNRF52_PAN_15,-DNRF52_PAN_54,-DNRF52_PAN_51,-DAR
+M_MATH_CM4,-DCONFIG_GPIO_AS_PINRESET,-DBOARD_PCA10040,-D__CORTEX_M4,-DNRF52_PAN
+_36,-DNRF52_PAN_31,-DNRF52_PAN_63,-DNRF52_PAN_30,-DNRF52_PAN_58,-DMBED_MPU_CUST
+OM,-D__CMSIS_RTOS,-DNRF52,-DNRF52_PAN_64,-DCMSIS_VECTAB_VIRTUAL_HEADER_FILE=cms
+is_nvic.h,-DWSF_MAX_HANDLERS=10,-DNRF52_PAN_12,-DNRF52_PAN_55,-DNRF52_PAN_62,--
+target=arm-arm-none-eabi,-mcpu=cortex-m4,-mfpu=fpv4-sp-d16,-mfloat-abi=hard,-D_
+_UVISION_VERSION=531,-DNRF52832_XXAA --list=.\build\startup_nrf52832.lst ./mbed
+-os/targets/TARGET_NORDIC/TARGET_NRF5x/TARGET_NRF52/TARGET_MCU_NRF52832/device/
+TOOLCHAIN_ARM_STD/startup_nrf52832.S
 
 
 
@@ -1046,4 +1046,4 @@ RF52\TARGET_MCU_NRF52832\device\TOOLCHAIN_ARM_STD\startup_nrf52832.S
 RF52\TARGET_MCU_NRF52832\device\TOOLCHAIN_ARM_STD\startup_nrf52832.S
 Comment: nrf_reloc_vector_table used once
 4 symbols
-393 symbols in table
+392 symbols in table
