@@ -136,7 +136,7 @@ private:
 
         /* This path will be used to store bonding information but will fallback
          * to storing in memory if file access fails (for example due to lack of a filesystem) */
-        const char* db_path = "/fs/bt_sec_db";
+        const char* db_path = "/fs/bt1_sec_db";
         /* If the security manager is required this needs to be called before any
          * calls to the Security manager happen. */
         error = _ble.securityManager().init(
@@ -273,13 +273,13 @@ private:
         }
 
         /* disconnect in 2 s *///50seconds
-        _event_queue.call_in(
-            50000,
-            &_ble.gap(),
-            disconnect_call,
-            _handle,
-            ble::local_disconnection_reason_t(ble::local_disconnection_reason_t::USER_TERMINATION)
-        );
+//        _event_queue.call_in(
+//            50000,
+//            &_ble.gap(),
+//            disconnect_call,
+//            _handle,
+//            ble::local_disconnection_reason_t(ble::local_disconnection_reason_t::USER_TERMINATION)
+//        );
     }
 
     /** This is called by Gap to notify the application we disconnected,
@@ -595,7 +595,7 @@ public:
             return;
         }
     };
-};
+}; 
 
 /** A central device will scan, connect to a peer and request pairing. */
 class SMDeviceCentral : public SMDevice {
@@ -765,11 +765,11 @@ int main()
 #endif
 
     while(1) {
-//        {
-//            printf("\r\n PERIPHERAL \r\n\r\n");
-//            SMDevicePeripheral peripheral(ble, queue, peer_address);
-//            peripheral.run();
-//        }
+        {
+            //printf("\r\n PERIPHERAL \r\n\r\n");
+            //SMDevicePeripheral peripheral(ble, queue, peer_address);
+            //peripheral.run();
+        }
 
         {
             printf("\r\n CENTRAL \r\n\r\n");

@@ -147,19 +147,19 @@ ARM Macro Assembler    Page 3
   124 00000058                 END
               00000000 
 Command Line: --debug --xref --cpreproc --diag_suppress=9931 --cpu=Cortex-M4.fp
-.sp -o.\build\except.o -I.\RTE\_BLE_Heartrate -IC:\Keil_v5\ARM\PACK\NordicSemic
-onductor\nRF_DeviceFamilyPack\8.32.1\Device\Include -IC:\Keil_v5\ARM\CMSIS\Incl
-ude --predefine="__UVISION_VERSION SETA 530" --predefine="NRF52832_XXAA SETA 1"
- --predefine="_RTE_ SETA 1" --cpreproc_opts=-D__ASSERT_MSG,-DWSF_MAX_HANDLERS=1
-0,-DNRF52_PAN_62,-DNRF52_PAN_36,-DNRF52,-DNRF52_PAN_51,-D__MBED_CMSIS_RTOS_CM,-
-DCONFIG_GPIO_AS_PINRESET,-D__CMSIS_RTOS,-DNRF52_PAN_20,-DNRF52_PAN_64,-DCMSIS_V
-ECTAB_VIRTUAL_HEADER_FILE=cmsis_nvic.h,-DSWI_DISABLE0,-DARM_MATH_CM4,-DNRF52_PA
-N_31,-DNRF52_PAN_58,-DNRF52_PAN_54,-DTARGET_NRF52832,-DNRF52_PAN_12,-DNRF52_PAN
-_53,-DMBED_TICKLESS,-D__FPU_PRESENT=1,-DMBED_MPU_CUSTOM,-DNRF52_PAN_55,-D__CORT
-EX_M4,-DNRF52_PAN_63,-DCMSIS_VECTAB_VIRTUAL,-DBOARD_PCA10040,-DNRF52_PAN_15,-DN
-RF52_PAN_30,--target=arm-arm-none-eabi,-mcpu=cortex-m4,-mfpu=fpv4-sp-d16,-mfloa
-t-abi=hard,-D__UVISION_VERSION=530,-DNRF52832_XXAA,-D_RTE_ --list=.\build\excep
-t.lst ./mbed-os/platform/source/TARGET_CORTEX_M/TOOLCHAIN_ARM/except.S
+.sp -o.\build\except.o -IC:\Users\myles.murray\AppData\Local\Arm\Packs\NordicSe
+miconductor\nRF_DeviceFamilyPack\8.32.1\Device\Include -IC:\Keil_v5\ARM\CMSIS\I
+nclude --predefine="__UVISION_VERSION SETA 531" --predefine="NRF52832_XXAA SETA
+ 1" --cpreproc_opts=-D__ASSERT_MSG,-DWSF_MAX_HANDLERS=10,-DNRF52_PAN_62,-DNRF52
+_PAN_36,-DNRF52,-DNRF52_PAN_51,-D__MBED_CMSIS_RTOS_CM,-DCONFIG_GPIO_AS_PINRESET
+,-D__CMSIS_RTOS,-DNRF52_PAN_20,-DNRF52_PAN_64,-DCMSIS_VECTAB_VIRTUAL_HEADER_FIL
+E=cmsis_nvic.h,-DSWI_DISABLE0,-DARM_MATH_CM4,-DNRF52_PAN_31,-DNRF52_PAN_58,-DNR
+F52_PAN_54,-DTARGET_NRF52832,-DNRF52_PAN_12,-DNRF52_PAN_53,-DMBED_TICKLESS,-D__
+FPU_PRESENT=1,-DMBED_MPU_CUSTOM,-DNRF52_PAN_55,-D__CORTEX_M4,-DNRF52_PAN_63,-DC
+MSIS_VECTAB_VIRTUAL,-DBOARD_PCA10040,-DNRF52_PAN_15,-DNRF52_PAN_30,--target=arm
+-arm-none-eabi,-mcpu=cortex-m4,-mfpu=fpv4-sp-d16,-mfloat-abi=hard,-D__UVISION_V
+ERSION=531,-DNRF52832_XXAA --list=.\build\except.lst ./mbed-os/platform/source/
+TARGET_CORTEX_M/TOOLCHAIN_ARM/except.S
 
 
 
@@ -344,4 +344,4 @@ M\except.S
 RM\except.S
 Comment: mbed_fault_handler used once
 2 symbols
-351 symbols in table
+350 symbols in table
