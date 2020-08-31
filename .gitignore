@@ -1,5 +1,6 @@
-
-
+BUILD/
+*.uiguix.*
+*.uvguix.*
 BLE_PeriodicAdvertising/mbed-os/
 BLE_Privacy/mbed-os/
 mbed-test-2/BLE_Heartrate/mbed-os/
