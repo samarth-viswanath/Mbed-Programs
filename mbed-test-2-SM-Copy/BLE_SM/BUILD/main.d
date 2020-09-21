@@ -311,7 +311,10 @@
   mbed-os\features\FEATURE_BLE\ble\CharacteristicDescriptorDiscovery.h \
   mbed-os\features\FEATURE_BLE\ble\FunctionPointerWithContext.h \
   mbed-os\features\FEATURE_BLE\ble\SecurityManager.h \
-  source\pretty_printer.h \
+  source\pretty_printer.h mbed-os\platform\mbed_wait_api.h \
+  mbed-os\features\storage\filesystem\littlefs\LittleFileSystem.h \
+  mbed-os\features\storage\filesystem\littlefs\littlefs\lfs.h \
+  mbed-os\features\storage\blockdevice\HeapBlockDevice.h \
   mbed-os\features\FEATURE_BLE\ble\DiscoveredService.h \
   mbed-os\features\FEATURE_BLE\ble\DiscoveredCharacteristic.h \
   mbed-os\features\FEATURE_BLE\ble\GattClient.h \

@@ -22,6 +22,9 @@
 #define __MBED_CONFIG_DATA__
 
 // Configuration parameters
+#define BLE_FEATURE_CONNECTABLE												  1
+#define BLE_ROLE_BROADCASTER												  1
+#define MBED_CONF_APP_FILESYSTEM_SUPPORT									  1
 #define ATT_NUM_SIMUL_NTF                                                     1                                                                                                // set by library:cordio
 #define ATT_NUM_SIMUL_WRITE_CMD                                               1                                                                                                // set by library:cordio
 #define BLE_FEATURE_EXTENDED_ADVERTISING                                      1                                                                                                // set by library:ble
@@ -39,7 +42,7 @@
 #define BLE_ROLE_OBSERVER                                                     1                                                                                                // set by library:ble
 #define BLE_ROLE_PERIPHERAL                                                   1                                                                                                // set by library:ble
 #define BLE_SECURITY_DATABASE_FILESYSTEM                                      1                                                                                                // set by library:ble
-#define BLE_SECURITY_DATABASE_KVSTORE                                         0                                                                                                // set by library:ble
+#define BLE_SECURITY_DATABASE_KVSTORE                                         1                                                                                                // set by library:ble
 #define BLE_SECURITY_DATABASE_MAX_ENTRIES                                     5                                                                                                // set by library:ble
 #define CHCI_TR_CUSTOM                                                        1                                                                                                // set by library:cordio-ll
 #define CHCI_TR_UART                                                          0                                                                                                // set by library:cordio-ll

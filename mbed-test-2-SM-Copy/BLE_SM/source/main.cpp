@@ -21,6 +21,8 @@
 #include "pretty_printer.h"
 #include <string.h>
 
+#include "mbed_wait_api.h"
+
 #if MBED_CONF_APP_FILESYSTEM_SUPPORT
 #include "LittleFileSystem.h"
 #include "HeapBlockDevice.h"
@@ -30,6 +32,7 @@
 #include "ble/DiscoveredService.h"
 #include "ble/DiscoveredCharacteristic.h"
 #include "ble/CharacteristicDescriptorDiscovery.h"
+
 
 /** This example demonstrates all the basic setup required
  *  for pairing and setting up link security both as a central and peripheral
@@ -46,6 +49,9 @@
  */
 
 static const char DEVICE_NAME[] = "SM_device";
+static bool hasBonded = false;
+static bool bool_sec = false;		
+static int temp_var;
 
 /* we have to specify the disconnect call because of ambiguous overloads */
 typedef ble_error_t (Gap::*disconnect_call_t)(ble::connection_handle_t, ble::local_disconnection_reason_t);
@@ -59,6 +65,7 @@ static ble::address_t peer_address = ble::address_t(&address[0]);
 const static ble::address_t _peer_address_nonin;
 ble::connection_handle_t _connectionHandle = NULL;
 GattAttribute::Handle_t _CCCD = 0;
+ GattAttribute::Handle_t _CCCD2 = 0;
  
 /** Base class for both peripheral and central. The same class that provides
  *  the logic for the application also implements the SecurityManagerEventHandler
@@ -66,6 +73,8 @@ GattAttribute::Handle_t _CCCD = 0;
  *  back to the applications. You can provide overrides for a selection of events
  *  your application is interested in.
  */
+ 
+
 class SMDevice : private mbed::NonCopyable<SMDevice>,
                  public SecurityManager::EventHandler,
                  public ble::Gap::EventHandler
@@ -78,7 +87,8 @@ public:
         _peer_address(peer_address),
         _handle(0),
         _is_connecting(false),
-				_found_characteristic(false) { };
+				_found_characteristic(false),
+				_found_ControlPointcharacteristic(false) { };
 
     virtual ~SMDevice()
     {
@@ -91,6 +101,15 @@ public:
     void run()
     {
         ble_error_t error;
+		
+		if (!temp_var)
+		{
+			printf("No Temp-var value \n\r");
+		}
+		else
+		{
+			printf("VALUE OF temp_var = %d \n\r",temp_var);
+		}
 
         /* to show we're running we'll blink every 500ms */
         _event_queue.call_every(500, this, &SMDevice::blink);
@@ -128,31 +147,49 @@ private:
     void on_init_complete(BLE::InitializationCompleteCallbackContext *event)
     {
         ble_error_t error;
-
+		printf("Init_Complete : In\n\r");
         if (event->error) {
             printf("Error during the initialisation\r\n");
             return;
         }
 
-        /* This path will be used to store bonding information but will fallback
-         * to storing in memory if file access fails (for example due to lack of a filesystem) */
-        const char* db_path = "/fs/bt1_sec_db";
-        /* If the security manager is required this needs to be called before any
-         * calls to the Security manager happen. */
-        error = _ble.securityManager().init(
-            true,
-            false,
-            SecurityManager::IO_CAPS_NONE,
-            NULL,
-            false,
-            db_path
-        );
+		static bool initialisedSM = false;
+		if (!initialisedSM) 
+		{
+			/* This path will be used to store bonding information but will fallback
+			 * to storing in memory if file access fails (for example due to lack of a filesystem) */
+			const char* db_path = "/fs/bt1_sec_db";
+			/* If the security manager is required this needs to be called before any
+			 * calls to the Security manager happen. */
+			error = _ble.securityManager().init(
+				true,
+				false,
+				SecurityManager::IO_CAPS_NONE,
+				NULL,
+				false,
+				db_path
+			);
 
-        if (error) {
-            printf("Error during init %d\r\n", error);
-            return;
-        }
-
+			if (error) {
+				printf("Error during init %d\r\n", error);
+				return;
+			}
+			initialisedSM = true;
+		}
+		::ble::whitelist_t whitelist;
+		//error = _ble.securityManager().setDatabaseFilepath(db_path);
+		::ble::whitelist_t::entry_t array_address [2];
+		whitelist.addresses = &array_address[0];
+		whitelist.capacity = 2;
+		whitelist.size = 0;
+		error = _ble.securityManager().generateWhitelistFromBondTable(&whitelist);
+		printf("whitelist.size = %d \n\r", whitelist.size);
+		if(whitelist.size >0 )
+		{
+			printf("whitelist.size is greater than zero \n\r");
+			//static bool is_in_whitelist(const whitelist_t::entry_t &device, const whitelist_t &whitelist)
+		}
+		//get_whitelist
         error = _ble.securityManager().preserveBondingStateOnReset(true);
 
         if (error) {
@@ -161,26 +198,19 @@ private:
 
 #if MBED_CONF_APP_FILESYSTEM_SUPPORT
         /* Enable privacy so we can find the keys */
-        error = _ble.gap().enablePrivacy(true);
-
+		printf("Enabling Privacy \n\r");
+       error = _ble.gap().enablePrivacy(true);
+ 
         if (error) {
             printf("Error enabling privacy\r\n");
         }
-
-        Gap::peripheral_privacy_configuration_t configuration_p = {
+ 
+        ble::central_privacy_configuration_t  configuration_c = {
             /* use_non_resolvable_random_address */ false,
-            Gap::peripheral_privacy_configuration_t::REJECT_NON_RESOLVED_ADDRESS
-        };
-        _ble.gap().setPeripheralPrivacyConfiguration(&configuration_p);
-
-        Gap::central_privay_configuration_t configuration_c = {
-            /* use_non_resolvable_random_address */ false,
-            Gap::CentralPrivacyConfiguration_t::RESOLVE_AND_FORWARD
+            ble::central_privacy_configuration_t::RESOLVE_AND_FORWARD
         };
         _ble.gap().setCentralPrivacyConfiguration(&configuration_c);
-
-        /* this demo switches between being master and slave */
-        _ble.securityManager().setHintFutureRoleReversal(true);
+ 
 #endif
 
         /* Tell the security manager to use methods in this class to inform us
@@ -195,6 +225,7 @@ private:
 
         /* start test in 500 ms */
         _event_queue.call_in(500, this, &SMDevice::start);
+		printf("Init_Complete : Out\n\r");
     };
 
     /** Schedule processing of events from the BLE in the event queue. */
@@ -208,6 +239,21 @@ private:
     {
         _led1 = !_led1;
     };
+	
+protected:
+	void startServiceDiscovery(ble::connection_handle_t connectionHandle) {
+		_connectionHandle = connectionHandle;
+				ble_error_t error = _ble.gattClient().launchServiceDiscovery(
+            connectionHandle,
+            as_cb(&SMDevice::when_service_discovered),
+            as_cb(&SMDevice::when_characteristic_discovered)
+        );
+		_ble.gattClient().onServiceDiscoveryTermination(as_cb(&SMDevice::whenServiceDiscoveryTerminated2));		
+        if (error) {
+            printf("Error %u returned by _client->launchServiceDiscovery.\r\n", error);
+            return;
+        }
+	}
 
 private:
     /* Event handler */
@@ -228,12 +274,11 @@ private:
         SecurityManager::SecurityCompletionStatus_t result
     ) {
         if (result == SecurityManager::SEC_STATUS_SUCCESS) {
-            printf("Pairing successful\r\n");
+            printf(" Pairing successful\r\n");
         } else {
-            printf("Pairing failed\r\n");
+            printf(" Pairing failed\r\n");
         }
     }
-
 		
     /**
      * Helper to construct an event handler from a member function of this
@@ -253,28 +298,20 @@ private:
         ble::link_encryption_t result
     ) {
         if (result == ble::link_encryption_t::ENCRYPTED) {
-            printf("Link ENCRYPTED\r\n");
+			hasBonded = true;
+            printf(" Link ENCRYPTED \r\n");
         } else if (result == ble::link_encryption_t::ENCRYPTED_WITH_MITM) {
-            printf("Link ENCRYPTED_WITH_MITM\r\n");
+            printf(" Link ENCRYPTED_WITH_MITM \r\n");
         } else if (result == ble::link_encryption_t::NOT_ENCRYPTED) {
-            printf("Link NOT_ENCRYPTED\r\n");
+            printf(" Link NOT_ENCRYPTED \r\n");
         }
 
-				_connectionHandle = connectionHandle;
-				ble_error_t error = _ble.gattClient().launchServiceDiscovery(
-            connectionHandle,
-            as_cb(&SMDevice::when_service_discovered),
-            as_cb(&SMDevice::when_characteristic_discovered)
-        );
-				
-        if (error) {
-            printf("Error %u returned by _client->launchServiceDiscovery.\r\n", error);
-            return;
-        }
+		startServiceDiscovery(connectionHandle);
 
-        /* disconnect in 2 s *///50seconds
+        /* disconnect in 2 s *///50seconds // 35 seconds
+		//_event_queue.dispatch_forever();
 //        _event_queue.call_in(
-//            50000,
+//            35000,
 //            &_ble.gap(),
 //            disconnect_call,
 //            _handle,
@@ -284,9 +321,9 @@ private:
 
     /** This is called by Gap to notify the application we disconnected,
      *  in our case it ends the demonstration. */
-    virtual void onDisconnectionComplete(const ble::DisconnectionCompleteEvent &)
+    virtual void onDisconnectionComplete(const ble::DisconnectionCompleteEvent &event)
     {
-        printf("Disconnected\r\n");
+        printf("Disconnected reason %d\r\n", event.getReason());
         _event_queue.break_dispatch();
     };
 		
@@ -330,13 +367,12 @@ private:
         printf(" ]");
     }
 		
-		
 		////////
-		
 		
 		void when_service_discovered(const DiscoveredService *discovered_service)
     {
         // print information of the service discovered
+		
         printf("Service discovered: value = ");
         print_uuid(discovered_service->getUUID());
         printf(", start = %u, end = %u.\r\n",
@@ -357,54 +393,99 @@ private:
             discovered_characteristic->getDeclHandle(),
             discovered_characteristic->getValueHandle(),
             discovered_characteristic->getLastHandle()
-        );
-			  
-			
-			/*char uuidStr[128];
-			memset(&uuidStr[0], 0, 128);
-		const UUID &uuid = discovered_characteristic->getUUID();
-			const uint8_t *uuid_value = uuid.getBaseUUID();
-
-        // UUIDs are in little endian, print them in big endian
-        for (size_t i = 0; i < uuid.getLen(); ++i) {
-					sprintf(&uuidStr[i * 2], "%02X", uuid_value[(uuid.getLen() - 1) - i]);
-        }
-				
-				printf("** Our uuid %s", uuidStr);*/
-			if (discovered_characteristic->getDeclHandle() == 28 && !_found_characteristic) {
-				printf("Match found");
-				_found_characteristic = true;
-				_discoveredCharacteristic = *discovered_characteristic;
-//				BLE &ble = BLE::Instance();
-//				ble.gattClient().onServiceDiscoveryTermination(as_cb(&SMDevice::whenServiceDiscoveryTerminated));
-				//5sec delay
-				_event_queue.call_in(
-            5000,
-						this,
-						&SMDevice::whenServiceDiscoveryTerminated
-        );
+        );		
+		if (discovered_characteristic->getDeclHandle() == 28 && !_found_characteristic) {
+			printf("Match found");  // sp02 
+			_found_characteristic = true;
+			_discoveredCharacteristic = *discovered_characteristic;
 			}
+		if ((discovered_characteristic->getDeclHandle() == 36) && (!_found_ControlPointcharacteristic)) {
+			if(!bool_sec){
+				printf("Match found - Nonin Control point - security feature  \n\r");
+				_found_ControlPointcharacteristic = true;
+				_discoveredControlPointCharacteristic = *discovered_characteristic;
+				BLE &ble = BLE::Instance();
+			}
+		}
     } 
 		
-		void whenServiceDiscoveryTerminated() {
-			if (!_found_characteristic) return;
+	void whenServiceDiscoveryTerminated(){//ble::connection_handle_t connectionHandle) {
+		if (!_found_characteristic) return;
 			printf(" Discovery Termination:In \n");
 			print_uuid(_discoveredCharacteristic.getUUID());
-        printf(", properties = ");
-        print_properties(_discoveredCharacteristic.getProperties());
+			printf(", properties = ");
+			print_properties(_discoveredCharacteristic.getProperties());
 			BLE &ble = BLE::Instance();
 			ble_error_t err = ble.gattClient().discoverCharacteristicDescriptors( 
 					_discoveredCharacteristic, 
 					as_cb(&SMDevice::whenDescriptorDiscovered),
 					as_cb(&SMDevice::whenDiscoveryEnd)
 			);
-
 			if (err) { 
 				 printf("discoverCharacteristicDescriptors call failed with Ble error: %d" , err);
 			}
+	}
+	
+	void whenServiceDiscoveryTerminated2(ble::connection_handle_t connectionHandle) {
+			printf(" whenDiscoveryEnd:Out1 \n"); 
+			printf(" whenDiscoveryEnd:OutFinal \n");
 			printf(" Discovery Termination:out \n");
+			wait_us(10000*2);
+			if(!bool_sec){
+				printf(" Del Bonds : In \n\r");
+				uint8_t deletebond_value[5] = {0x63,0x4e,0x4d,0x49,0x00 }; //99,78,77,73,0 // 0x63,0x4e,0x4d,0x49,0x00   / fliped - 0x00,0x49,0x4d,0x4e,0x63
+				//ble_error_t 
+				printf("can write %s", _discoveredControlPointCharacteristic.getProperties().write() ? "yes" : "no");
+				//_CCCD = p->descriptor.getAttributeHandle();
+				ble_error_t err;
+				err = _discoveredControlPointCharacteristic.write( 
+								sizeof(deletebond_value),
+								(uint8_t*) &deletebond_value,
+								as_cb(&SMDevice::whenDataWritten1)
+						);
+				if (err) { 
+				// remove the callback registered for data write
+				printf(" _discoveredControlPointCharacteristic write error: %2x \n\r", err);
+				return;
+				}
+			
+				printf(" Del Bonds : Out \n\r");
+			}
+			else { 
+					if(_found_characteristic ==  true){
+					whenServiceDiscoveryTerminated();
+					}// to get spo2 Values.
+					else{
+						printf(" _found_characteristic = false.. but still trying to discover sp02 \n\r");
+						whenServiceDiscoveryTerminated();
+					}
+				}
+			wait_us(10000*2);
+			_event_queue.call_in(7000,&_ble.gap(),
+								disconnect_call,
+								_handle,
+								ble::local_disconnection_reason_t(ble::local_disconnection_reason_t::USER_TERMINATION)
+								);
 		}
 		 
+		void whenControlPointServiceDiscoveryTerminated(){
+			if (!_found_ControlPointcharacteristic) return;
+			printf(" Discovery Termination 2 : In \n");
+			print_uuid(_discoveredControlPointCharacteristic.getUUID());
+			printf(", properties Control Point = ");
+			print_properties(_discoveredControlPointCharacteristic.getProperties());
+			BLE &ble = BLE::Instance();
+			ble_error_t err2 = ble.gattClient().discoverCharacteristicDescriptors( 
+					_discoveredControlPointCharacteristic, 
+					as_cb(&SMDevice::whenControlPointDescriptorDiscovered),
+					as_cb(&SMDevice::whenDiscoveryControlPointEnd)
+			);
+			if (err2) { 
+				printf(" whenControlPointServiceDiscoveryTerminated:call failed with Ble error: %d" , err2);
+			}
+			printf(" Discovery Termination 2 : Out \n");
+		}
+		
 		void onUpdatesCallback(const GattHVXCallbackParams *params)
 			{
 				printf("onUpdatesCallback : update received: handle %u, length %u, type = %d \r\n", params->handle,params->len,params->type);
@@ -415,85 +496,196 @@ private:
 				}
 			}
 		
+		void onControlPointUpdatesCallback(const GattHVXCallbackParams *params)
+			{
+				printf("onControlPointUpdatesCallback : update received: handle %u, length %u, type = %d \r\n", params->handle,params->len,params->type);
+			}
+			
+			void onControlPointUpdatesCallback2(const GattHVXCallbackParams *params){
+					printf(" onControlPointUpdatesCallback2 \n\r");
+			}
 		void whenDescriptorDiscovered(const CharacteristicDescriptorDiscovery::DiscoveryCallbackParams_t* p) { 
 						BLE &ble = BLE::Instance();
 						printf("whenDescriptorDiscovered:In \n");
-				printf("\tCharacteristic DESCRIPTOR discovered: uuid = ");
-        print_uuid(p->characteristic.getUUID());
-        printf(", properties = ");
-        print_properties(p->characteristic.getProperties());
-            if (p->descriptor.getUUID() == BLE_UUID_DESCRIPTOR_CLIENT_CHAR_CONFIG) { 
-							print_uuid(p->descriptor.getUUID());
+						printf("\tCharacteristic DESCRIPTOR discovered: uuid = ");
+						print_uuid(p->characteristic.getUUID());
+						printf(", properties = ");
+						print_properties(p->characteristic.getProperties());
+						if (p->descriptor.getUUID() == BLE_UUID_DESCRIPTOR_CLIENT_CHAR_CONFIG) { 
+								printf(" ");
+								print_uuid(p->descriptor.getUUID());
+								printf(" ");
 								printf("whenDescriptorDiscovered - p->descriptor.getUUID():In \n");
-                _CCCD = p->descriptor.getAttributeHandle();
-                ble.gattClient().terminateCharacteristicDescriptorDiscovery(_discoveredCharacteristic);
-            }
-					printf(" whenDescriptorDiscovered:Out \n");
+								_CCCD = p->descriptor.getAttributeHandle();
+								ble.gattClient().terminateCharacteristicDescriptorDiscovery(_discoveredCharacteristic);
+						}
+						printf(" whenDescriptorDiscovered:Out \n");
         }
-    
-        void whenDiscoveryEnd(const CharacteristicDescriptorDiscovery::TerminationCallbackParams_t* p) {
+		
+		void whenControlPointDescriptorDiscovered(const CharacteristicDescriptorDiscovery::DiscoveryCallbackParams_t* p) { 
+						BLE &ble = BLE::Instance();
+						printf("whenControlPointDescriptorDiscovered:In \n");
+						printf("\tCharacteristic ControlPointDescriptorDiscovered: uuid = ");
+						print_uuid(p->characteristic.getUUID());
+						printf(", Characteristic ControlPoint properties = ");
+						print_properties(p->characteristic.getProperties());
+						printf("UUID ... 1\n\r ");
+						print_uuid(p->descriptor.getUUID());
+						printf("UUID ... 2 \n\r ");
+						print_uuid(p->descriptor.getUUID());
+						
+						if (p->descriptor.getUUID() == BLE_UUID_DESCRIPTOR_CLIENT_CHAR_CONFIG) { 
+							printf(" BLE_UUID_DESCRIPTOR_CLIENT_CHAR_CONFIG \n\r ");
+							print_uuid(p->descriptor.getUUID());
+							printf(" whenControlPointDescriptorDiscovered :DescriptorDiscovered - p->descriptor.getUUID():In \n");
+							_CCCD = p->descriptor.getAttributeHandle();
+							ble.gattClient().terminateCharacteristicDescriptorDiscovery(_discoveredControlPointCharacteristic);
+						}
+						
+						printf(" whenControlPointDescriptorDiscovered:Out \n");
+			
+        }
+		
+       void whenDiscoveryEnd(const CharacteristicDescriptorDiscovery::TerminationCallbackParams_t* p) {
 						printf(" whenDiscoveryEnd:In \n");
-            if (p->status) {
-								return;
-            }
+						if (p->status) {
+									return;
+						}
 						printf(" whenDiscoveryEnd:Out1 \n"); 
-            BLE &ble = BLE::Instance();
+						BLE &ble = BLE::Instance();
 						// otherwise launch write the descriptor
-            // first register the write callback 
-					
+						// first register the write callback 
 						printf(" whenDiscoveryEnd:after launch descriptor \n"); 
-            uint16_t cccd_value = BLE_HVX_NOTIFICATION;
+						uint16_t cccd_value = BLE_HVX_NOTIFICATION;
 						ble_error_t err = ble.gattClient().write( 
-                GattClient::GATT_OP_WRITE_REQ,
-                _discoveredCharacteristic.getConnectionHandle(),
-                _CCCD,
-                sizeof(cccd_value),
-                (uint8_t*) &cccd_value
-            );
-						    ble.gattClient().onHVX(
-                as_cb(&SMDevice::onUpdatesCallback)
-            );
+						GattClient::GATT_OP_WRITE_REQ,
+									_discoveredCharacteristic.getConnectionHandle(),
+									_CCCD,
+									sizeof(cccd_value),
+									(uint8_t*) &cccd_value
+									);
+						ble.gattClient().onHVX(
+										as_cb(&SMDevice::onUpdatesCallback)
+										);
 						printf(" whenDiscoveryEnd:after writing notification \n"); 
-            if (err) { 
-                
-                // remove the callback registered for data write 
-                ble.gattClient().onDataWritten().detach(
-                    as_cb(&SMDevice::whenDataWritten)
-                );
-                return;
-            }
+						if (err) { 
+                				// remove the callback registered for data write 
+								printf(" whenDiscoveryEnd: err = %d \n\r", err);
+								/*ble.gattClient().onDataWritten().detach(
+												as_cb(&SMDevice::whenDataWritten)
+								);*/
+						return;
+						}
 						printf(" whenDiscoveryEnd:OutFinal \n");
         }
 
-			virtual void whenDataWritten(const GattWriteCallbackParams* params) {
-					printf("whenDataWritten ");
-					//printf("Spo2 %d ", (uint8_t)params->data[7]);
-					//printf("Pulse %d ", (uint16_t)((params->data[8] << 8) | params->data[9]));
-			}
-				
-		virtual void on_attribute_read(const GattReadCallbackParams* params) {
-			printf("Read attribute ");
-			//printf("Spo2 %d", (uint8_t)params->data[7]);
-			//printf("Pulse %d", (uint16_t)((params->data[8] << 8) | params->data[9]));
+		void whenDiscoveryControlPointEnd(const CharacteristicDescriptorDiscovery::TerminationCallbackParams_t* p) {
+					printf(" whenDiscoveryControlPointEnd:In \n");
+					if (p->status) {
+								return;
+					}
+					printf(" whenDiscoveryControlPointEnd:Out1 \n"); 
+					BLE &ble = BLE::Instance();
+					printf(" whenDiscoveryControlPointEnd:after launch descriptor \n"); 
+					//_CCCD = p->descriptor.getAttributeHandle();
+					uint16_t cccd_value = BLE_HVX_NOTIFICATION;
+					ble_error_t err = ble.gattClient().write( 
+							GattClient::GATT_OP_WRITE_REQ,
+							_discoveredControlPointCharacteristic.getConnectionHandle(),
+							_CCCD,
+							sizeof(cccd_value),
+							(uint8_t*) &cccd_value
+							);
+							ble.gattClient().onHVX(
+							as_cb(&SMDevice::onControlPointUpdatesCallback)
+							);
+					printf(" whenDiscoveryControlPointEnd:after writing notification \n"); 
+				if (err) { 
+					printf(" _CCCD write error: %2x\n\r", err); 
+					// remove the callback registered for data write 
+					return;
+				}
+				printf(" whenDiscoveryControlPointEnd:OutFinal \n");
+		
 		}
+	
+			virtual void whenDataWritten1(const GattWriteCallbackParams* params) {
+					printf("whenDataWritten ");
+					//if (params->handle == _discoveredControlPointCharacteristic.getValueHandle()) {
+					printf(" status is true or false(errors exist) =  %d  " ,(uint8_t)params->status);
+					printf(" error code  is true or false(errors exist) =  %d  " ,(uint8_t)params->error_code);
+					printf(" length =  %d  " ,(uint8_t)params->len);
+						//if( params->status != 0){
+						//printf(" ", (uint8_t)params->size();
+					for (int i = 0 ; i<= ((uint8_t)params->len); i++){
+								printf(" 1 =  %d  \n\r" ,(uint8_t)params->data[i] );
+							}
 
-    virtual void onAdvertisingEnd(const ble::AdvertisingEndEvent &event)
-    {
-        if (!event.isConnected()) {
-            printf("Advertising timed out - aborting\r\n");
-            _event_queue.break_dispatch();
-        }
-    }
+					printf("\n\r Bool_sec Flag = %d", bool_sec);
+					if(!bool_sec){
+							printf(" Sec Mode 1: In \n\r");
+							uint8_t secmode_value[5] = {0x64,0x4e,0x4d,0x49,0x01 }; //99,78,77,73,0 // 0x63,0x4e,0x4d,0x49,0x00   / fliped - 0x00,0x49,0x4d,0x4e,0x63
+							//ble_error_t 
+							printf("can write %s", _discoveredControlPointCharacteristic.getProperties().write() ? "yes" : "no");
+							ble_error_t err = _discoveredControlPointCharacteristic.write( 
+															sizeof(secmode_value),
+															(uint8_t*) &secmode_value,
+															as_cb(&SMDevice::whenDataWritten2)
+										);
+							if (err) { 
+										// remove the callback registered for data write
+										printf(" _discoveredControlPointCharacteristic write error: %2x \n\r", err);
+										return;
+									}
+						bool_sec = true;
+						printf("\n\r Inside the Bool_sec Loop : Bool_sec Flag = %d", bool_sec);
+						printf("  Sec Mode 1: Out \n\r");
+					}				
+			}
+			
+			virtual void whenDataWritten2(const GattWriteCallbackParams* params) {
+					printf("whenDataWrittenwhenDataWritten2 ");
+					//if (params->handle == _discoveredControlPointCharacteristic.getValueHandle()) {
+					printf(" status is true or false(errors exist) =  %d  " ,(uint8_t)params->status);
+					printf(" error code  is true or false(errors exist) =  %d  " ,(uint8_t)params->error_code);
+					printf(" length =  %d  " ,(uint8_t)params->len);
+						//if( params->status != 0){
+						//printf(" ", (uint8_t)params->size();
+					for (int i = 0 ; i<= ((uint8_t)params->len); i++){
+								printf(" 1 =  %d  \n\r" ,(uint8_t)params->data[i] );
+							}
+							if (_found_characteristic == true){
+							BLE &ble = BLE::Instance();
+							//ble.gattClient().onServiceDiscoveryTermination(as_cb(&SMDevice::whenServiceDiscoveryTerminated));	
+							whenServiceDiscoveryTerminated();
+						}	
+			}
+			
+			virtual void on_attribute_read(const GattReadCallbackParams* params) {
+					printf("Read attribute ");
+					//printf("Spo2 %d", (uint8_t)params->data[7]);
+					//printf("Pulse %d", (uint16_t)((params->data[8] << 8) | params->data[9]));
+				}
 
-    virtual void onScanTimeout(const ble::ScanTimeoutEvent &)
-    {
-        printf("Scan timed out - aborting\r\n");
-        _event_queue.break_dispatch();
-    }
+			virtual void onAdvertisingEnd(const ble::AdvertisingEndEvent &event)
+			{
+				if (!event.isConnected()) {
+					printf("Advertising timed out - aborting\r\n");
+					_event_queue.break_dispatch();
+				}
+			}
+
+			virtual void onScanTimeout(const ble::ScanTimeoutEvent &)
+			{
+				printf("Scan timed out - aborting\r\n");
+				_event_queue.break_dispatch();
+			}
 
 private:
 		DiscoveredCharacteristic _discoveredCharacteristic;
+		DiscoveredCharacteristic _discoveredControlPointCharacteristic;
 		bool _found_characteristic;
+		bool _found_ControlPointcharacteristic;
     DigitalOut _led1;
 
 protected:
@@ -620,12 +812,13 @@ public:
             print_error(error, "Error in Gap::startScan %d\r\n");
             return;
         }
-
+		int temp_status;
         printf("Please advertise\r\n");
 				//_peer_address_nonin = 00:0d:6F:10:45:99 ;
         printf("Scanning for: ");
         print_address(_peer_address.data());
-				
+		
+		// status = getStatus()
 				//printf("Nonin address ---> 00:0d:6f:10:45:99");
 				//get_nonin_address(_peer_address_nonin.data());
 				
@@ -691,15 +884,33 @@ private:
             _handle = event.getConnectionHandle();
 
             printf("Connected\r\n");
-
-            /* in this example the local device is the master so we request pairing */
-            ble_error_t error = _ble.securityManager().requestPairing(_handle);
-
-             if (error) {
-                 printf("Error during SM::requestPairing %d\r\n", error);
-                 return;
-             }
-
+			printf("hasBonded= %d",hasBonded);
+			if (!hasBonded)
+			{
+				/* in this example the local device is the master so we request pairing */
+				//ble_error_t error = _ble.securityManager().requestPairing(_handle);
+					 ble_error_t error = _ble.securityManager().setLinkSecurity(
+                _handle,
+                SecurityManager::SECURITY_MODE_ENCRYPTION_NO_MITM
+            );
+				printf(" requestPairing : error= %d",error);
+				 if (error) {
+					 printf("Error during SM::requestPairing %d\r\n", error);
+					 return;
+				 }
+			} else {   
+				//ble_error_t error =	_ble.securityManager().setLinkEncryption(_handle,ble::link_encryption_t::ENCRYPTED );
+				 ble_error_t error = _ble.securityManager().setLinkSecurity(
+                _handle,
+                SecurityManager::SECURITY_MODE_ENCRYPTION_NO_MITM
+				);
+				printf(" setLinkEncryption : error= %d",error);
+				if (error) {
+					 printf("Error during SM::setLinkEncryption %d\r\n", error);
+					 return;
+				 }
+				
+			}
             /* upon pairing success the application will disconnect */
         }
 
@@ -723,19 +934,25 @@ bool create_filesystem()
     static HeapBlockDevice bd(4096, 256);
 
     int err = bd.init();
-
+	
+	printf("bd.init = %d \r\n",err);
+	
     if (err) {
         return false;
     }
 
     err = bd.erase(0, bd.size());
 
+	printf("bd.erase = %d \r\n",err);
+	
     if (err) {
         return false;
     }
 
     err = fs.mount(&bd);
-
+	
+	printf("fs.mount()= %d \r\n",err);
+	
     if (err) {
         /* Reformat if we can't mount the filesystem */
         printf("No filesystem found, formatting...\r\n");
@@ -753,9 +970,11 @@ bool create_filesystem()
 
 int main()
 {
+	printf("main -----------\r\n");
     BLE& ble = BLE::Instance();
+	//BLE &ble_;
     events::EventQueue queue;
-
+	temp_var = 0;
 #if MBED_CONF_APP_FILESYSTEM_SUPPORT
     /* if filesystem creation fails or there is no filesystem the security manager
      * will fallback to storing the security database in memory */
@@ -763,7 +982,7 @@ int main()
         printf("Filesystem creation failed, will use memory storage\r\n");
     }
 #endif
-
+	int j;
     while(1) {
         {
             //printf("\r\n PERIPHERAL \r\n\r\n");
@@ -775,8 +994,11 @@ int main()
             printf("\r\n CENTRAL \r\n\r\n");
             SMDeviceCentral central(ble, queue, peer_address);
             central.run();
+			//ble_.gap()
         }
+	
     }
 
+	printf("main end -----------\r\n");
     return 0;
 }

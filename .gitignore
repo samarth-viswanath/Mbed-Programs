@@ -1,7 +1,6 @@
 BUILD/
-*.uiguix.*
-*.uvguix.*
+.json
 BLE_PeriodicAdvertising/mbed-os/
 BLE_Privacy/mbed-os/
 mbed-test-2/BLE_Heartrate/mbed-os/
-mbed-test-2-SM-Copy/BLE_SM/mbed-os/
+

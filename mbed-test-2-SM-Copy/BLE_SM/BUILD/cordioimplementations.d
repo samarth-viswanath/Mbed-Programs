@@ -212,6 +212,8 @@
   mbed-os\features\FEATURE_BLE\ble\generic\SecurityDb.h \
   mbed-os\features\FEATURE_BLE\ble\generic\FileSecurityDb.h \
   mbed-os\features\FEATURE_BLE\ble\generic\KVStoreSecurityDb.h \
+  mbed-os\features\storage\kvstore\global_api\kvstore_global_api.h \
+  mbed-os\platform\mbed_error.h \
   mbed-os\features\FEATURE_BLE\targets\TARGET_CORDIO\CordioPalGap.h \
   mbed-os\features\FEATURE_BLE\targets\TARGET_CORDIO\stack\ble-host\include\dm_api.h \
   mbed-os\features\FEATURE_BLE\targets\TARGET_CORDIO\stack\ble-host\include\hci_api.h \
