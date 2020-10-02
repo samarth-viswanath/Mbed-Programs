@@ -311,6 +311,8 @@
   mbed-os\features\FEATURE_BLE\ble\CharacteristicDescriptorDiscovery.h \
   mbed-os\features\FEATURE_BLE\ble\FunctionPointerWithContext.h \
   mbed-os\features\FEATURE_BLE\ble\SecurityManager.h \
+  mbed-os\features\FEATURE_BLE\ble\services\DeviceInformationService.h \
+  mbed-os\features\FEATURE_BLE\ble\gap\AdvertisingParameters.h \
   source\pretty_printer.h mbed-os\platform\mbed_wait_api.h \
   mbed-os\features\storage\filesystem\littlefs\LittleFileSystem.h \
   mbed-os\features\storage\filesystem\littlefs\littlefs\lfs.h \

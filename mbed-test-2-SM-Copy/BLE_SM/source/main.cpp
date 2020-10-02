@@ -18,6 +18,8 @@
 #include <mbed.h>
 #include "ble/BLE.h"
 #include "SecurityManager.h"
+#include "DeviceInformationService.h"
+#include "AdvertisingParameters.h"
 #include "pretty_printer.h"
 #include <string.h>
 
@@ -53,6 +55,17 @@ static bool hasBonded = false;
 static bool bool_sec = false;		
 static int temp_var;
 
+const uint8_t 					advertisement_data_size = 9; // 7 to 9
+uint8_t     					advertisement_data[advertisement_data_size]  = {0};
+
+bool						activate_scan_response = true; //false
+const uint8_t 				scan_response_data_size = 7;
+uint8_t     				scan_response_data[scan_response_data_size]  = {0};
+
+uint8_t 					scan_response_buffer[ble::LEGACY_ADVERTISING_MAX_SIZE];
+
+const uint32_t RS_ADVERTISING_INTERVAL = 0x800;  
+
 /* we have to specify the disconnect call because of ambiguous overloads */
 typedef ble_error_t (Gap::*disconnect_call_t)(ble::connection_handle_t, ble::local_disconnection_reason_t);
 const static disconnect_call_t disconnect_call = &Gap::disconnect;
@@ -67,6 +80,7 @@ ble::connection_handle_t _connectionHandle = NULL;
 GattAttribute::Handle_t _CCCD = 0;
  GattAttribute::Handle_t _CCCD2 = 0;
  
+ extern void         UpdateAdvertisementPayload(void);
 /** Base class for both peripheral and central. The same class that provides
  *  the logic for the application also implements the SecurityManagerEventHandler
  *  which is the interface used by the Security Manager to communicate events
@@ -461,11 +475,11 @@ private:
 					}
 				}
 			wait_us(10000*2);
-			_event_queue.call_in(7000,&_ble.gap(),
+			/*_event_queue.call_in(7000,&_ble.gap(),
 								disconnect_call,
 								_handle,
 								ble::local_disconnection_reason_t(ble::local_disconnection_reason_t::USER_TERMINATION)
-								);
+								);*/
 		}
 		 
 		void whenControlPointServiceDiscoveryTerminated(){
@@ -494,8 +508,113 @@ private:
 					printf("Spo2 %d \n", (uint8_t)params->data[7]);
 					printf("Pulse %d \n", (uint16_t)((params->data[8] << 8) | params->data[9]));
 				}
+				updateAdvertisementPayload();
 			}
 		
+			
+		///
+	void updateAdvertisementPayload() {
+		printf("updateAdvertisementPayload IN");
+		Gap& gap = _ble.gap();
+		// stopping advertising is not synchronous
+		// there is a delay there so we now just update in place
+		/*if (gap.isAdvertisingActive(ble::LEGACY_ADVERTISING_HANDLE)) {
+			ble_error_t error = gap.stopAdvertising(LEGACY_ADVERTISING_HANDLE);
+			if (error) {
+					print_error(error, "Gap::stopAdvertising() failed");
+			}
+		}*/
+		
+        ble:: AdvertisingParameters adv_parameters(
+		ble::advertising_type_t::CONNECTABLE_UNDIRECTED,
+		ble::adv_interval_t(RS_ADVERTISING_INTERVAL)
+        );
+		int8_t tx_power = -40;
+		adv_parameters.setTxPower(tx_power);
+		
+        ble_error_t error = gap.setAdvertisingParameters(
+		ble::LEGACY_ADVERTISING_HANDLE,
+            adv_parameters
+        );
+
+		/* Set up and start advertising */
+        uint8_t adv_buffer[ble::LEGACY_ADVERTISING_MAX_SIZE];
+        /* use the helper to build the payload */
+        ble::AdvertisingDataBuilder adv_data_builder(
+            adv_buffer
+        );
+   		char device_name[20]  = "995";	
+		adv_data_builder.setFlags();
+        adv_data_builder.setName(device_name, true);
+		printf("Advert device name '%s'", device_name);
+		//adv_data_builder.setName(device_name);
+		if (true) {
+			mbed::Span<const uint8_t> man_data((const uint8_t *) advertisement_data, advertisement_data_size);
+			adv_data_builder.setManufacturerSpecificData(man_data);
+		}
+				
+		error = gap.setAdvertisingPayload(
+		ble::LEGACY_ADVERTISING_HANDLE,
+            adv_data_builder.getAdvertisingData()
+        );
+
+		if (error) {
+            print_error(error, "Gap::setAdvertisingPayload() failed");
+            return;
+        }
+		
+		if (activate_scan_response) {
+			/* Set up and start advertising */
+			//uint8_t scan_response_buffer[ble::LEGACY_ADVERTISING_MAX_SIZE];
+			/* use the helper to build the payload */
+			printf(" activate scan response : In \n\r");
+			/*scan_response_buffer[0] = 83;
+			scan_response_buffer[1] = 84 ;*/
+			scan_response_data[0] = 85; // 0x55
+			scan_response_data[1] = 88; // 0x58
+			// emualting the new packet format
+			//| SPO2_Peripheral(Type) | Manufacturer | Data Length (4) | SPO2 | Pulse | Battery % | Status Byte |
+			//  In Hex 
+			// 01 01 04 55 58 50 10
+			scan_response_data[0] = 01; // 0x01
+			scan_response_data[1] = 01; // 0x01
+			scan_response_data[2] = 04 ;  // 4
+			scan_response_data[3] = 85; // 55
+			scan_response_data[4] = 88; // 58
+			scan_response_data[5] = 80; // 50
+			scan_response_data[6] = 16; // 10
+			ble:: AdvertisingDataBuilder scan_response_data_builder(
+				scan_response_buffer
+			);
+			advertisement_data[0]   = 0x6B; // PMD Company Identifier - 0x046B (octets reversed)
+			advertisement_data[1]   = 0x04; // https://www.bluetooth.com/specifications/assigned-numbers/company-identifiers 
+			mbed::Span<const uint8_t> man_data((const uint8_t *) scan_response_data, scan_response_data_size);
+			scan_response_data_builder.setManufacturerSpecificData(man_data);
+			printf("sending setAdvertisingScanResponse %d", _ble.gap().getMaxActiveSetAdvertisingDataLength());	
+			error = gap.setAdvertisingScanResponse(
+			ble::LEGACY_ADVERTISING_HANDLE,
+				scan_response_data_builder.getAdvertisingData()
+			);
+        
+			if (error) {
+				print_error(error, "Gap::setAdvertisingParameters() failed");
+				return;
+			}
+			printf(" activate scan response : Out \n\r");
+		}
+
+        error = gap.startAdvertising(ble::LEGACY_ADVERTISING_HANDLE);
+
+        if (error) {
+            print_error(error, "Gap::startAdvertising() failed");
+            return;
+        }
+		printf("Advertisement started on thread %s", ThisThread::get_name());	
+	}
+			
+			
+		///
+			
 		void onControlPointUpdatesCallback(const GattHVXCallbackParams *params)
 			{
 				printf("onControlPointUpdatesCallback : update received: handle %u, length %u, type = %d \r\n", params->handle,params->len,params->type);
